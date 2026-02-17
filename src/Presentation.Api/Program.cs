@@ -16,8 +16,9 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
-builder.Logging.ClearProviders();
-builder.Logging.AddSerilog();
+builder.Host.UseSerilog();
+
+
 
 // Add Services
 builder.Services.AddControllers();
@@ -40,11 +41,8 @@ builder.Services.AddScoped<IProductService, ProductService>();
 var app = builder.Build();
 
 // Configure Pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.MapScalarApiReference();
-}
+app.MapOpenApi();
+app.MapScalarApiReference();
 
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
