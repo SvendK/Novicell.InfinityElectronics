@@ -11,28 +11,29 @@ EXPOSE 8081
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
+WORKDIR /
 
-COPY ["src/Directory.Build.props", "."]
+COPY ["src/Directory.Build.props", "src/"]
 
-COPY ["src/Domain/Domain.csproj", "Domain/"]
-COPY ["src/Application/Application.csproj", "Application/"]
-COPY ["src/Infrastructure/Infrastructure.csproj", "Infrastructure/"]
-COPY ["src/Presentation.Api/Presentation.Api.csproj", "Presentation.Api/"]
+COPY ["src/Domain/Domain.csproj", "src/Domain/"]
+COPY ["src/Application/Application.csproj", "src/Application/"]
+COPY ["src/Infrastructure/Infrastructure.csproj", "src/Infrastructure/"]
+COPY ["src/Presentation.Api/Presentation.Api.csproj", "src/Presentation.Api/"]
 
-RUN dotnet restore "Presentation.Api/Presentation.Api.csproj"
-COPY src/ .
+RUN dotnet restore "src/Presentation.Api/Presentation.Api.csproj"
+COPY . .
 
 WORKDIR "/src/Presentation.Api"
-RUN dotnet build "Presentation.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "Presentation.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build /p:SolutionName=Infinity
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Presentation.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Presentation.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false /p:SolutionName=Infinity
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+RUN ls -la
 ENTRYPOINT ["dotnet", "Infinity.Presentation.Api.dll"]

@@ -1,7 +1,7 @@
 # See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
-FROM mcr.microsoft.com/dotnet/runtime:10.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER $APP_UID
 WORKDIR /app
 
@@ -9,28 +9,29 @@ WORKDIR /app
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
+WORKDIR /
 
-COPY ["src/Directory.Build.props", "."]
+COPY ["src/Directory.Build.props", "src/"]
 
-COPY ["src/Domain/Domain.csproj", "Domain/"]
-COPY ["src/Application/Application.csproj", "Application/"]
-COPY ["src/Infrastructure/Infrastructure.csproj", "Infrastructure/"]
-COPY ["src/WorkerService/WorkerService.csproj", "WorkerService/"]
+COPY ["src/Domain/Domain.csproj", "src/Domain/"]
+COPY ["src/Application/Application.csproj", "src/Application/"]
+COPY ["src/Infrastructure/Infrastructure.csproj", "src/Infrastructure/"]
+COPY ["src/WorkerService/WorkerService.csproj", "src/WorkerService/"]
 
-RUN dotnet restore "WorkerService/WorkerService.csproj"
-COPY src/ .
+RUN dotnet restore "src/WorkerService/WorkerService.csproj"
+COPY . .
 
 WORKDIR "/src/WorkerService"
-RUN dotnet build "WorkerService.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "WorkerService.csproj" -c $BUILD_CONFIGURATION -o /app/build /p:SolutionName=Infinity
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "WorkerService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "WorkerService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false /p:SolutionName=Infinity
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", ".WorkerService.dll"]
+RUN ls -la
+ENTRYPOINT ["dotnet", "Infinity.WorkerService.dll"]

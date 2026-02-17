@@ -8,9 +8,10 @@ services:
     ports:
       - "1433:1433"
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Strong!Passw0rd -Q 'SELECT 1' || exit 1"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Strong!Passw0rd -Q 'SELECT 1' -C || exit 1"]
       interval: 10s
       retries: 5
+      start_period: 10s # Time to boot before failing
 
   redis:
     image: redis:alpine
