@@ -1,0 +1,10 @@
+<Project>
+	<PropertyGroup>
+		<!-- Keep code separate from build artifacts -->
+		<BaseOutputPath>$(SolutionDir)build\bin\$(SolutionName).$(MSBuildProjectName)\</BaseOutputPath>
+		<BaseIntermediateOutputPath>$(SolutionDir)build\obj\$(SolutionName).$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+		<!-- Short project names, namespaces including solution name -->
+		<AssemblyName Condition="'$(AssemblyName)'==''">$(SolutionName).$(MSBuildProjectName)</AssemblyName>
+		<RootNamespace>$(SolutionName.Replace(" ", "_")).$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+	</PropertyGroup>
+</Project>

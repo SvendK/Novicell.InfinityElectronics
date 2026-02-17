@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/docs/" />
+  <Folder Name="/infra/">
+    <File Path="infra/main.bicep" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+  </Folder>
+  <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
+    <Project Path="src/Application/Application.csproj" />
+    <Project Path="src/Domain/Domain.csproj" />
+    <Project Path="src/Infrastructure/Infrastructure.csproj" />
+    <Project Path="src/Presentation.Api/Presentation.Api.csproj" />
+    <Project Path="src/WorkerService/WorkerService.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+</Solution>

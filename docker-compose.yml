@@ -1,0 +1,52 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: infinity_sql
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Strong!Passw0rd
+    ports:
+      - "1433:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Strong!Passw0rd -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: infinity_redis
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: .
+      dockerfile: src/Presentation.Api/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=InfinityDb;User Id=sa;Password=Strong!Passw0rd;TrustServerCertificate=True;
+      - ConnectionStrings__Redis=redis:6379
+      - ApiSettings__ApiKey=secret-123
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  worker:
+    build:
+      context: .
+      dockerfile: src/WorkerService/Dockerfile
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=InfinityDb;User Id=sa;Password=Strong!Passw0rd;TrustServerCertificate=True;
+      - ConnectionStrings__Redis=redis:6379
+      # Using the sample URL provided in the PDF
+      - ErpSettings__ProductEndpoint=https://ncrecruitmentpubweu.blob.core.windows.net/cases/ecom/products-sample-v1.json
+      - ErpSettings__CategoryEndpoint=https://ncrecruitmentpubweu.blob.core.windows.net/cases/ecom/categories-sample-v1.json
+      - WorkerSettings__IntervalMinutes=10
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_started
